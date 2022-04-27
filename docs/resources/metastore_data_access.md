@@ -3,11 +3,13 @@ subcategory: "Unity Catalog"
 ---
 # databricks_metastore_data_access (Resource)
 
--> **Private Preview** This feature is in [Private Preview](https://docs.databricks.com/release-notes/release-types.html). Contact your Databricks representative to request access. 
+-> **Public Preview** This feature is in [Public Preview](https://docs.databricks.com/release-notes/release-types.html). Contact your Databricks representative to request access. 
 
 Each [databricks_metastore](docs/resources/metastore.md) requires an IAM role that will be assumed by Unity Catalog to access data. `databricks_metastore_data_access` defines this
 
 ## Example Usage
+
+For AWS
 
 ```hcl
 resource "databricks_metastore" "this" {
@@ -22,6 +24,30 @@ resource "databricks_metastore_data_access" "this" {
   name         = aws_iam_role.metastore_data_access.name
   aws_iam_role {
     role_arn = aws_iam_role.metastore_data_access.arn
+  }
+  is_default = true
+}
+```
+
+For Azure
+
+```hcl
+resource "databricks_metastore" "this" {
+  name = "primary"
+  storage_root = format("abfss://%s@%s.dfs.core.windows.net/",
+    azurerm_storage_account.unity_catalog.name,
+  azurerm_storage_container.unity_catalog.name)
+  owner         = "uc admins"
+  force_destroy = true
+}
+
+resource "databricks_metastore_data_access" "this" {
+  metastore_id = databricks_metastore.this.id
+  name         = aws_iam_role.metastore_data_access.name
+  azure_service_principal {
+    directory_id   = var.tenant_id
+    application_id = azuread_application.unity_catalog.application_id
+    client_secret  = azuread_application_password.unity_catalog.value
   }
   is_default = true
 }

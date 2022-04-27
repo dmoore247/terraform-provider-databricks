@@ -3,13 +3,15 @@ subcategory: "Unity Catalog"
 ---
 # databricks_storage_credential Resource
 
--> **Private Preview** This feature is in [Private Preview](https://docs.databricks.com/release-notes/release-types.html). Contact your Databricks representative to request access. 
+-> **Public Preview** This feature is in [Public Preview](https://docs.databricks.com/release-notes/release-types.html). Contact your Databricks representative to request access. 
 
 To work with external tables, Unity Catalog introduces two new objects to access and work with external cloud storage:
 - `databricks_storage_credential` represents authentication methods to access cloud storage (e.g. an IAM role for Amazon S3 or a service principal for Azure Storage). Storage credentials are access-controlled to determine which users can use the credential.
 - [databricks_external_location](external_location.md) are objects that combine a cloud storage path with a Storage Credential that can be used to access the location. 
 
 ## Example Usage
+
+For AWS
 
 ```hcl
 resource "databricks_storage_credential" "external" {
@@ -20,18 +22,33 @@ resource "databricks_storage_credential" "external" {
   comment = "Managed by TF"
 }
 
-resource "databricks_external_location" "some" {
-  name            = "external"
-  url             = "s3://${aws_s3_bucket.external.id}/some"
-  credential_name = databricks_storage_credential.external.id
-  comment         = "Managed by TF"
-}
-
-resource "databricks_grants" "some" {
-  external_location = databricks_external_location.some.id
+resource "databricks_grants" "external_creds" {
+  storage_credential = databricks_storage_credential.external.id
   grant {
     principal  = "Data Engineers"
-    privileges = ["CREATE TABLE", "READ FILES"]
+    privileges = ["CREATE_TABLE"]
+  }
+}
+```
+
+For Azure
+
+```hcl
+resource "databricks_storage_credential" "external" {
+  name = azuread_application.ext_cred.display_name
+  azure_service_principal {
+    directory_id   = var.tenant_id
+    application_id = azuread_application.ext_cred.application_id
+    client_secret  = azuread_application_password.ext_cred.value
+  }
+  comment = "Managed by TF"
+}
+
+resource "databricks_grants" "external_creds" {
+  storage_credential = databricks_storage_credential.external.id
+  grant {
+    principal  = "Data Engineers"
+    privileges = ["CREATE_TABLE"]
   }
 }
 ```

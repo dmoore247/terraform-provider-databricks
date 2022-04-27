@@ -3,7 +3,7 @@ subcategory: "Unity Catalog"
 ---
 # databricks_metastore Resource
 
--> **Private Preview** This feature is in [Private Preview](https://docs.databricks.com/release-notes/release-types.html). Contact your Databricks representative to request access. 
+-> **Public Preview** This feature is in [Public Preview](https://docs.databricks.com/release-notes/release-types.html). Contact your Databricks representative to request access. 
 
 A metastore is the top-level container of objects in Unity Catalog. It stores data assets (tables and views) and the permissions that govern access to them. Databricks account admins can create metastores and assign them to Databricks workspaces in order to control which workloads use each metastore.
 
@@ -11,10 +11,30 @@ Unity Catalog offers a new metastore with built in security and auditing. This i
 
 ## Example Usage
 
+For AWS
+
 ```hcl
 resource "databricks_metastore" "this" {
   name          = "primary"
   storage_root  = "s3://${aws_s3_bucket.metastore.id}/metastore"
+  owner         = "uc admins"
+  force_destroy = true
+}
+
+resource "databricks_metastore_assignment" "this" {
+  metastore_id = databricks_metastore.this.id
+  workspace_id = local.workspace_id
+}
+```
+
+For Azure
+
+```hcl
+resource "databricks_metastore" "this" {
+  name = "primary"
+  storage_root = format("abfss://%s@%s.dfs.core.windows.net/",
+    azurerm_storage_account.unity_catalog.name,
+  azurerm_storage_container.unity_catalog.name)
   owner         = "uc admins"
   force_destroy = true
 }

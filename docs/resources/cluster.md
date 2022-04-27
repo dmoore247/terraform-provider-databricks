@@ -5,6 +5,8 @@ subcategory: "Compute"
 
 This resource allows you to manage [Databricks Clusters](https://docs.databricks.com/clusters/index.html).
 
+-> **Note** In case of [`Cannot access cluster ####-######-####### that was terminated or unpinned more than 30 days ago`](https://github.com/databrickslabs/terraform-provider-databricks/issues/1197#issuecomment-1069386670) errors, please upgrade to v0.5.5 or later. If for some reason you cannot upgrade the version of provider, then the other viable option to unblock the apply pipeline is [`terraform state rm path.to.databricks_cluster.resource`](https://www.terraform.io/cli/commands/state/rm) command.
+
 ```hcl
 data "databricks_node_type" "smallest" {
   local_disk = true
@@ -45,7 +47,7 @@ resource "databricks_cluster" "shared_autoscaling" {
 * `spark_env_vars` - (Optional) Map with environment variable key-value pairs to fine-tune Spark clusters. Key-value pairs of the form (X,Y) are exported (i.e., X='Y') while launching the driver and workers.
 * `custom_tags` - (Optional) Additional tags for cluster resources. Databricks will tag all cluster resources (e.g., AWS EC2 instances and EBS volumes) with these tags in addition to `default_tags`.
 * `spark_conf` - (Optional) Map with key-value pairs to fine-tune Spark clusters, where you can provide custom [Spark configuration properties](https://spark.apache.org/docs/latest/configuration.html) in a cluster configuration.
-* `is_pinned` - (Optional) boolean value specifying if cluster is pinned (not pinned by default). You must be a Databricks administrator to use this.  The pinned clusters' maximum number is [limited to 20](https://docs.databricks.com/clusters/clusters-manage.html#pin-a-cluster), so `apply` may fail if you have more than that.
+* `is_pinned` - (Optional) boolean value specifying if cluster is pinned (not pinned by default). You must be a Databricks administrator to use this.  The pinned clusters' maximum number is [limited to 70](https://docs.databricks.com/clusters/clusters-manage.html#pin-a-cluster), so `apply` may fail if you have more than that.
 
 The following example demonstrates how to create an autoscaling cluster with [Delta Cache](https://docs.databricks.com/delta/optimizations/delta-cache.html) enabled:
 
